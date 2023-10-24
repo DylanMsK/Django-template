@@ -25,7 +25,7 @@ SECRET_KEY = env("SECRET_KEY")
 # False if not in os.environ because of casting above
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost"]
 
 
 # Application definition
@@ -37,14 +37,20 @@ DJANGO_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 ]
-THIRDPARTY_APPS = []
-PROJECT_APPS = []
+THIRDPARTY_APPS = [
+    "rest_framework",
+]
+PROJECT_APPS = [
+    "core.apps.CoreConfig",
+]
 INSTALLED_APPS = DJANGO_APPS + THIRDPARTY_APPS + PROJECT_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "config.middlewares.logging_middleware.LoggingMiddleware",
+    "config.middlewares.custom_middlewares.CustomMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -123,3 +129,21 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "django.request": {
+            "handlers": ["console"],
+            "level": "INFO",  # change debug level as appropiate
+            "propagate": False,
+        },
+    },
+}
