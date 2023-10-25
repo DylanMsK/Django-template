@@ -45,6 +45,7 @@ PROJECT_APPS = [
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRDPARTY_APPS + PROJECT_APPS
 
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -131,6 +132,14 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
+# # RestFramework settings
+# # https://www.django-rest-framework.org/api-guide/settings/#settings
+REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "config.exceptions.handler.custom_exception_handler",
+}
+
+# Logging settings
+# https://docs.djangoproject.com/en/4.2/topics/logging/
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -142,7 +151,7 @@ LOGGING = {
     "loggers": {
         "django.request": {
             "handlers": ["console"],
-            "level": "INFO",  # change debug level as appropiate
+            "level": "DEBUG",  # change debug level as appropiate
             "propagate": False,
         },
     },
