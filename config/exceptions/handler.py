@@ -25,12 +25,18 @@ def custom_exception_handler(exc, context):
 
     # Now add the HTTP status code to the response.
     if response is not None:
+        # TODO making custom code
         response.data = {
-            "code": response.status_code,
-            "message": str(exc),
+            "error": {
+                "code": response.status_code,
+                "message": str(exc),
+            },
             "timestamp": timezone.now(),
         }
         return response
     else:
-        data = {**codes.INTERNER_ERROR, "timestamp": timezone.now()}
+        data = {
+            "error": codes.INTERNER_ERROR,
+            "timestamp": timezone.now(),
+        }
         return Response(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
