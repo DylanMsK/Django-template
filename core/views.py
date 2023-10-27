@@ -1,15 +1,15 @@
-from django.http import JsonResponse, Http404
-from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 from rest_framework.parsers import JSONParser
-from rest_framework.exceptions import ParseError
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
 
+@api_view(["GET"])
 def sample_error(request):
-    raise ValidationError()
-    raise Http404()
-    raise ZeroDivisionError()
+    # raise NotFound()
+    if 5 / 0:
+        return Response({})
 
 
 class SampleGetViewset(APIView):
@@ -20,5 +20,4 @@ class SampleGetViewset(APIView):
 class SamplePostViewset(APIView):
     def post(self, request):
         data = JSONParser().parse(request)
-        raise ParseError()
         return Response(data)
