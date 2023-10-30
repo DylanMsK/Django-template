@@ -51,7 +51,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "config.middlewares.logging_middleware.LoggingMiddleware",
-    "config.middlewares.custom_middlewares.CustomMiddleware",
+    "config.middlewares.custom_middleware.CustomMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -119,6 +119,10 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
+
+
+# Autentication
+AUTH_URL = env("AUTH_URL")
 
 
 # Static files (CSS, JavaScript, Images)
