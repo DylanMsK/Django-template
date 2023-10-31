@@ -52,6 +52,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "config.middlewares.logging_middleware.LoggingMiddleware",
     "config.middlewares.custom_middleware.CustomMiddleware",
+    "config.middlewares.authentication_middleware.JWTAuthenticationMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
