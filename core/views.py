@@ -14,6 +14,7 @@ def sample_error(request):
 
 class SampleGetViewset(APIView):
     def get(self, request):
+        print(request.user)
         return Response({"status": "ok"})
 
 
