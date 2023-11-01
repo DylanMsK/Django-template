@@ -1,19 +1,12 @@
 import re
 import logging
 
-from django import VERSION as django_version
-from django.conf import settings
+from django.utils import timezone
 
 from config.logging import CustomColourLogger
 
 
 DEFAULT_LOG_LEVEL = logging.DEBUG
-IS_DJANGO_VERSION_GTE_3_2_0 = django_version >= (3, 2, 0, "final", 0)
-DEFAULT_SENSITIVE_HEADERS = (
-    ["Authorization", "Proxy-Authorization"]
-    if IS_DJANGO_VERSION_GTE_3_2_0
-    else ["HTTP_AUTHORIZATION", "HTTP_PROXY_AUTHORIZATION"]
-)
 
 BINARY_REGEX = re.compile(r"(.+Content-Type:.*?)(\S+)/(\S+)(?:\r\n)*(.+)", re.S | re.I)
 BINARY_TYPES = ("image", "application")
@@ -31,15 +24,7 @@ class LoggingMiddleware(object):
         self.get_response = get_response
 
         self.log_level = logging.DEBUG
-        self.sensitive_headers = getattr(
-            settings, "REQUEST_LOGGING_SENSITIVE_HEADERS", DEFAULT_SENSITIVE_HEADERS
-        )
-        if not isinstance(self.sensitive_headers, list):
-            raise ValueError(
-                "{} should be list. {} is not list.".format(
-                    "REQUEST_LOGGING_SENSITIVE_HEADERS", self.sensitive_headers
-                )
-            )
+        self.sensitive_headers = ["Authorization", "Proxy-Authorization"]
 
         self.max_body_length = 50000
         self.logger = CustomColourLogger(request_logger)
@@ -49,45 +34,39 @@ class LoggingMiddleware(object):
         # in order to avoid other threads overwriting the original self.cached_request_body reference,
         # is this done to preserve the original value in case it is mutated during the get_response invocation?
         cached_request_body = request.body
+        self.process_request(request, cached_request_body)
+
         response = self.get_response(request)
-        self.process_request(request, response, cached_request_body)
+
         self.process_response(request, response)
         return response
 
-    def process_request(self, request, response, cached_request_body):
-        method_path = "{} [{}] {}".format(
-            request.method, request.id, request.get_full_path()
-        )
+    def process_request(self, request, cached_request_body):
         logging_context = self._get_logging_context(request, None)
 
-        log_level = self.log_level
-        if response is not None and response.status_code >= 400:
-            log_level = logging.ERROR
+        timestamp = timezone.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        ip_address = self._get_request_ip(request)
+        http_method = request.method
+        request_url = request.get_full_path()
+        user_agent = request.META.get("HTTP_USER_AGENT", "")
 
-        self.logger.log(logging.INFO, method_path, logging_context)
-        self._log_request_headers(request, logging_context, log_level)
-        self._log_request_body(request, logging_context, log_level, cached_request_body)
+        log_string = (
+            f'{timestamp} "{http_method} {request_url}" {ip_address} {user_agent}'
+        )
 
-    def _log_request_headers(self, request, logging_context, log_level):
-        if IS_DJANGO_VERSION_GTE_3_2_0:
-            headers = {
-                k: v if k not in self.sensitive_headers else "*****"
-                for k, v in request.headers.items()
-            }
-        else:
-            headers = {
-                k: v if k not in self.sensitive_headers else "*****"
-                for k, v in request.META.items()
-                if k.startswith("HTTP_")
-            }
+        self.logger.log(logging.INFO, log_string, logging_context)
+        self._log_request_headers(request, logging.DEBUG, logging_context)
+        self._log_request_body(request, logging_context, cached_request_body)
 
-        if headers:
-            self.logger.log(log_level, headers, logging_context)
+    def _log_request_headers(self, request, log_level, logging_context):
+        headers = {
+            k: v if k not in self.sensitive_headers else "*****"
+            for k, v in request.headers.items()
+        }
+        self.logger.log(log_level, headers, logging_context)
 
-    def _log_request_body(
-        self, request, logging_context, log_level, cached_request_body
-    ):
-        if cached_request_body is not None:
+    def _log_request_body(self, request, logging_context, cached_request_body):
+        if cached_request_body:
             content_type = request.META.get("CONTENT_TYPE", "")
             is_multipart = content_type.startswith("multipart/form-data")
             if is_multipart:
@@ -97,12 +76,12 @@ class LoggingMiddleware(object):
                 self._log_multipart(
                     self._chunked_to_max(cached_request_body),
                     logging_context,
-                    log_level,
+                    self.log_level,
                     multipart_boundary,
                 )
             else:
                 self.logger.log(
-                    log_level,
+                    self.log_level,
                     self._chunked_to_max(cached_request_body),
                     logging_context,
                 )
@@ -132,7 +111,7 @@ class LoggingMiddleware(object):
             "kwargs": {"extra": {"request": request, "response": response}},
         }
 
-    def _log_multipart(self, body, logging_context, log_level, multipart_boundary):
+    def _log_multipart(self, log_level, body, logging_context, multipart_boundary):
         """
         Splits multipart body into parts separated by "boundary", then matches each part to BINARY_REGEX
         which searches for existence of "Content-Type" and capture of what type is this part.
@@ -164,10 +143,8 @@ class LoggingMiddleware(object):
 
     def _log_resp(self, level, response, logging_context):
         if re.match("^application/json", response.get("Content-Type", ""), re.I):
-            if IS_DJANGO_VERSION_GTE_3_2_0:
-                response_headers = response.headers
-            else:
-                response_headers = response._headers
+            response_headers = response.headers
+
             self.logger.log(level, response_headers, logging_context)
             if response.streaming:
                 # There's a chance that if it's streaming it's because large and it might hit
@@ -182,3 +159,11 @@ class LoggingMiddleware(object):
 
     def _chunked_to_max(self, msg):
         return msg[: self.max_body_length]
+
+    def _get_request_ip(self, request):
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(",")[0]
+        else:
+            ip = request.META.get("REMOTE_ADDR")
+        return ip
