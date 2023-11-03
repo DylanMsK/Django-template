@@ -121,10 +121,6 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Autentication
-AUTH_URL = env("AUTH_URL")
-
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
@@ -149,7 +145,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "SIGNING_KEY": "3.4@ED4asS8zBQ6]",
+    "SIGNING_KEY": env("TOKEN_SIGNING_KEY"),
 }
 
 # Logging settings
@@ -165,7 +161,7 @@ LOGGING = {
     "loggers": {
         "django.request": {
             "handlers": ["console"],
-            "level": "DEBUG",  # change debug level as appropiate
+            "level": "INFO",  # change debug level as appropiate
             "propagate": False,
         },
     },
