@@ -1,19 +1,19 @@
 import logging
 
 from django.utils import timezone
-from rest_framework.views import exception_handler
+from rest_framework.views import exception_handler as origin_exception_handler
 from rest_framework import exceptions
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.exceptions import InvalidToken
 
-from config.exceptions import custom_exceptions
+from core.exceptions import CustomException
 
 
 logger = logging.getLogger("django.request")
 
 
-def custom_exception_handler(exc, context):
+def exception_handler(exc, context):
     data = {
         "error": {},
         "timestamp": timezone.now(),
@@ -21,7 +21,7 @@ def custom_exception_handler(exc, context):
 
     # Call REST framework's default exception handler first,
     # to get the standard error response.
-    response = exception_handler(exc, context)
+    response = origin_exception_handler(exc, context)
 
     # Now add the HTTP status code to the response.
     if response is not None:
@@ -51,7 +51,7 @@ def custom_exception_handler(exc, context):
             msg = exc.detail
         elif isinstance(exc, exceptions.ValidationError):
             msg = exc.detail
-        elif isinstance(exc, custom_exceptions.CustomException):
+        elif isinstance(exc, CustomException):
             error["code"] = exc.default_code
             msg = exc.detail
         else:
