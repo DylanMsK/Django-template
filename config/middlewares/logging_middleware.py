@@ -91,7 +91,7 @@ class LoggingMiddleware(object):
         if hasattr(request, "user"):
             user_id = request.user.id
 
-        log_string = f'[{timestamp}] {request.id} "{http_method} {request_url}" user-{user_id} {status_code} {runtime}'
+        log_string = f'[{timestamp}] {request.id} "{http_method} {request_url}" user({user_id}) {status_code} {runtime}'
 
         if status_code >= 400:
             self.logger.log_error(logging.INFO, log_string, logging_context)
