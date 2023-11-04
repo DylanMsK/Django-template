@@ -1,23 +1,23 @@
 import logging
 
+from django.utils import timezone
 from rest_framework.views import exception_handler
+from rest_framework import exceptions
 from rest_framework.response import Response
 from rest_framework import status
-from django.utils import timezone
+from rest_framework_simplejwt.exceptions import InvalidToken
 
-from config.exceptions import codes
+from config.exceptions import custom_exceptions
 
 
 logger = logging.getLogger("django.request")
 
 
 def custom_exception_handler(exc, context):
-    logger.error("[CUSTOM_EXCEPTION_HANDLER_ERROR]")
-    logger.error(f"[{timezone.now()}]")
-    logger.error("> exc")
-    logger.error(f"{exc}")
-    logger.error("> context")
-    logger.error(f"{context}")
+    data = {
+        "error": {},
+        "timestamp": timezone.now(),
+    }
 
     # Call REST framework's default exception handler first,
     # to get the standard error response.
@@ -25,18 +25,46 @@ def custom_exception_handler(exc, context):
 
     # Now add the HTTP status code to the response.
     if response is not None:
-        # TODO making custom code
-        response.data = {
-            "error": {
-                "code": response.status_code,
-                "message": str(exc),
-            },
-            "timestamp": timezone.now(),
+        error = {
+            "code": f"ERR{response.status_code}",
+            "msg": "",
         }
+        if isinstance(exc, InvalidToken):
+            msg = exc.detail
+        elif isinstance(exc, exceptions.ParseError):
+            msg = exc.detail
+        elif isinstance(exc, exceptions.AuthenticationFailed):
+            msg = exc.detail
+        elif isinstance(exc, exceptions.NotAuthenticated):
+            msg = exc.detail
+        elif isinstance(exc, exceptions.PermissionDenied):
+            msg = exc.detail
+        elif isinstance(exc, exceptions.NotFound):
+            msg = exc.detail
+        elif isinstance(exc, exceptions.MethodNotAllowed):
+            msg = exc.detail
+        elif isinstance(exc, exceptions.NotAcceptable):
+            msg = exc.detail
+        elif isinstance(exc, exceptions.UnsupportedMediaType):
+            msg = exc.detail
+        elif isinstance(exc, exceptions.Throttled):
+            msg = exc.detail
+        elif isinstance(exc, exceptions.ValidationError):
+            msg = exc.detail
+        elif isinstance(exc, custom_exceptions.CustomException):
+            error["code"] = exc.default_code
+            msg = exc.detail
+        else:
+            msg = "Unknown error"
+
+        error["msg"] = msg
+        data["error"] = error
+        response.data = data
+
         return response
-    else:
-        data = {
-            "error": codes.INTERNER_ERROR,
-            "timestamp": timezone.now(),
-        }
-        return Response(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    data["error"] = {
+        "code": "ERR500",
+        "message": "Unknown error",
+    }
+    return Response(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
