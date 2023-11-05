@@ -11,9 +11,16 @@ env = environ.Env(
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Take environment variables from .env file
+
+# Take environment variables from envs folder
 # See https://django-environ.readthedocs.io/en/latest/quickstart.html
-environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+if os.environ.get("DJANGO_ENV") == "development":
+    environ.Env.read_env(os.path.join(BASE_DIR, "envs", ".env.development"))
+elif os.environ.get("DJANGO_ENV") == "production":
+    environ.Env.read_env(os.path.join(BASE_DIR, "envs", ".env.production"))
+else:
+    environ.Env.read_env(os.path.join(BASE_DIR, "envs", ".env.local"))
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
