@@ -1,0 +1,10 @@
+version: '3.9'
+
+services:
+  django:
+    build:
+      context: .
+      dockerfile: ./deploy/Dockerfile
+    restart: always
+    env_file:
+    - ./envs/.env.local
