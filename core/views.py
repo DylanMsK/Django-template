@@ -15,7 +15,7 @@ def sample_error(request):
 class SampleGetViewset(APIView):
     def get(self, request):
         print(request.user.id)
-        raise CustomNotFound()
+        # raise CustomNotFound()
         return Response({"status": "ok"})
 
 
