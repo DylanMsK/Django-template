@@ -9,30 +9,23 @@ env = environ.Env(
 )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
-# Take environment variables from envs folder
-# See https://django-environ.readthedocs.io/en/latest/quickstart.html
-if os.environ.get("DJANGO_ENV") == "development":
-    environ.Env.read_env(os.path.join(BASE_DIR, "envs", ".env.development"))
-elif os.environ.get("DJANGO_ENV") == "production":
+if os.environ.get("DJANGO_ENV") == "production":
     environ.Env.read_env(os.path.join(BASE_DIR, "envs", ".env.production"))
+elif os.environ.get("DJANGO_ENV") == "development":
+    environ.Env.read_env(os.path.join(BASE_DIR, "envs", ".env.development"))
 else:
     environ.Env.read_env(os.path.join(BASE_DIR, "envs", ".env.local"))
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # Raises Django's ImproperlyConfigured
 # exception if SECRET_KEY not in os.environ
 SECRET_KEY = env("SECRET_KEY")
 
-# False if not in os.environ because of casting above
-DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = ["localhost"]
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -89,7 +82,16 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {"default": env.db("DATABASE_URL")}
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": env("DB_NAME"),
+        "USER": env("DB_USER"),
+        "PASSWORD": env("DB_PASSWORD"),
+        "HOST": env("DB_HOST"),
+        "PORT": env("DB_PORT"),
+    },
+}
 
 
 # Password validation
