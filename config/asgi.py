@@ -8,9 +8,19 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
 """
 
 import os
+import logging
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+
+logger = logging.getLogger("gunicorn")
+logger.warn("ASGI environment: %s", os.environ.get("DJANGO_ENV", "local"))
+
+if os.environ.get("DJANGO_ENV") == "production":
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.production")
+elif os.environ.get("DJANGO_ENV") == "development":
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.development")
+else:
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.local")
 
 application = get_asgi_application()
