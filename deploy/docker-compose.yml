@@ -5,7 +5,6 @@ services:
     build:
       context: .
       dockerfile: ./deploy/Dockerfile
+      target: production
     container_name: django-template
     restart: always
-    env_file:
-    - ./envs/.env.local

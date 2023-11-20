@@ -1,4 +1,4 @@
-FROM python:3.9.18-slim-bullseye as builder
+FROM python:3.9.18-slim-bullseye as production
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     gcc \
@@ -25,8 +25,10 @@ RUN apt-get purge -y \
 # Copying actuall application
 COPY . /app/src/
 RUN poetry install --only main
+RUN python manage.py migrate
 
 CMD ["gunicorn", "-c", "config/gunicorn.config.py", "config.asgi:application" ]
 
-FROM builder as dev
+
+FROM production as development
 RUN poetry install
