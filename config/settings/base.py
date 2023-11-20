@@ -25,7 +25,7 @@ else:
 SECRET_KEY = env("SECRET_KEY")
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost"]
 
 
 # Application definition
@@ -157,16 +157,16 @@ SIMPLE_JWT = {
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-        },
-    },
-    "loggers": {
-        "django.request": {
-            "handlers": ["console"],
-            "level": "INFO",  # change debug level as appropiate
-            "propagate": False,
-        },
-    },
+    # "handlers": {
+    #     "console": {
+    #         "class": "logging.StreamHandler",
+    #     },
+    # },
+    # "loggers": {
+    #     "django.request": {
+    #         "handlers": ["console"],
+    #         "level": "INFO",  # change debug level as appropiate
+    #         "propagate": False,
+    #     },
+    # },
 }
