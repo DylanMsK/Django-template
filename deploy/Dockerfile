@@ -27,12 +27,10 @@ RUN apt-get purge -y \
 # Copying actuall application
 COPY . /app/src/
 RUN poetry install --only main
-RUN echo 'DJANGO_ENV: ${DJANGO_ENV}'
-RUN ls -al envs
-RUN cat envs/.env.${DJANGO_ENV}
-
 
 RUN python manage.py migrate
+
+EXPOSE 8000
 
 CMD ["gunicorn", "-c", "config/gunicorn.config.py", "config.asgi:application" ]
 
