@@ -4,6 +4,7 @@ RUN apt-get update \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
+ENV DJANGO_ENV=${DJANGO_ENV}
 
 RUN pip install poetry==1.7.0
 
