@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -12,13 +13,6 @@ def sample_error(request):
         return Response({})
 
 
-class SampleGetViewset(APIView):
-    def get(self, request):
-        print(request.user.id)
-        # raise CustomNotFound()
-        return Response({"status": "ok"})
-
-
 class SamplePostViewset(APIView):
     def post(self, request):
         data = JSONParser().parse(request)
@@ -27,3 +21,8 @@ class SamplePostViewset(APIView):
 
 class SampleFormDataViewset(APIView):
     pass
+
+
+class HealthCheck(APIView):
+    def get(self, request):
+        return Response({"status": "ok"})
