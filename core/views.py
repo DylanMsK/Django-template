@@ -1,3 +1,5 @@
+import configparser
+
 from django.conf import settings
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -26,3 +28,14 @@ class SampleFormDataViewset(APIView):
 class HealthCheck(APIView):
     def get(self, request):
         return Response({"status": "ok"})
+
+
+class ProjectInfo(APIView):
+    def get(self, request):
+        config = configparser.ConfigParser()
+        config.read(settings.BASE_DIR / "pyproject.toml")
+        data = {
+            "name": config.get("tool.poetry", "name").strip('"'),
+            "version": config.get("tool.poetry", "version").strip('"'),
+        }
+        return Response(data)
