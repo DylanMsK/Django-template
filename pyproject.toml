@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-template"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["dylanmsk <kms920612@gmail.com>"]
 readme = "README.md"
@@ -15,10 +15,16 @@ gunicorn = "^21.2.0"
 uvicorn = "^0.24.0.post1"
 psycopg2-binary = "^2.9.9"
 
-
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.3"
 pytest-cov = "^4.1.0"
+pytest-django = "^4.7.0"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.development"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = "-v -s"
+filterwarnings = ["ignore::DeprecationWarning"]
 
 [build-system]
 requires = ["poetry-core"]
