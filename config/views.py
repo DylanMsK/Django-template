@@ -63,8 +63,10 @@ def exception_handler(exc, context):
 
         return response
 
+    logger.error(f"{exc.__class__.__name__}: {exc}", exc_info=exc)
+
     data["error"] = {
         "code": "ERR500",
-        "message": "Unknown error",
+        "message": "UNKNOWN ERROR",
     }
     return Response(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
