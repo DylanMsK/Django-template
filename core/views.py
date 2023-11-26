@@ -27,15 +27,34 @@ class SampleFormDataViewset(APIView):
 
 class HealthCheck(APIView):
     def get(self, request):
-        return Response({"status": "ok"})
+        from django.db import connections
+        from django.db.utils import OperationalError
+
+        # 데이터베이스 연결 체크
+        db_conn = connections["default"]
+        try:
+            db_conn.cursor()
+        except OperationalError:
+            db_status = "disconnected"
+        else:
+            db_status = "connected"
+
+        service_status = "healthy" if db_status == "connected" else "unhealthy"
+
+        response = {
+            "status": service_status,
+            "database": db_status,
+        }
+
+        return Response(response)
 
 
 class ProjectInfo(APIView):
     def get(self, request):
         config = configparser.ConfigParser()
         config.read(settings.BASE_DIR / "pyproject.toml")
-        data = {
+        response = {
             "name": config.get("tool.poetry", "name").strip('"'),
             "version": config.get("tool.poetry", "version").strip('"'),
         }
-        return Response(data)
+        return Response(response)
